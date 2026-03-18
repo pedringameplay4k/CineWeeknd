@@ -1,0 +1,214 @@
+-- ============================================================
+-- CineWeeknd v2.0 - Database Schema
+-- Run this file to set up the database from scratch
+-- ============================================================
+
+CREATE DATABASE IF NOT EXISTS cineweeknd CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE cineweeknd;
+
+-- -------------------------------------------------------
+-- Users
+-- -------------------------------------------------------
+CREATE TABLE IF NOT EXISTS users (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name        VARCHAR(100) NOT NULL,
+    email       VARCHAR(150) NOT NULL UNIQUE,
+    password    VARCHAR(255) NOT NULL,
+    avatar      VARCHAR(255) DEFAULT NULL,
+    is_admin    TINYINT(1) DEFAULT 0,
+    is_active   TINYINT(1) DEFAULT 1,
+    reset_token VARCHAR(64) DEFAULT NULL,
+    reset_expires DATETIME DEFAULT NULL,
+    created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_email (email)
+) ENGINE=InnoDB;
+
+-- -------------------------------------------------------
+-- Genres
+-- -------------------------------------------------------
+CREATE TABLE IF NOT EXISTS genres (
+    id         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name       VARCHAR(60) NOT NULL UNIQUE,
+    slug       VARCHAR(60) NOT NULL UNIQUE,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- -------------------------------------------------------
+-- Movies
+-- -------------------------------------------------------
+CREATE TABLE IF NOT EXISTS movies (
+    id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    title         VARCHAR(200) NOT NULL,
+    slug          VARCHAR(200) NOT NULL UNIQUE,
+    synopsis      TEXT,
+    director      VARCHAR(120) DEFAULT NULL,
+    cast_list     TEXT DEFAULT NULL,
+    release_year  YEAR DEFAULT NULL,
+    duration_min  SMALLINT UNSIGNED DEFAULT NULL,
+    rating        DECIMAL(3,1) DEFAULT 0.0,
+    genre_id      INT UNSIGNED DEFAULT NULL,
+    poster        VARCHAR(255) DEFAULT NULL,
+    trailer_url   VARCHAR(500) DEFAULT NULL,
+    price         DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    is_featured   TINYINT(1) DEFAULT 0,
+    is_active     TINYINT(1) DEFAULT 1,
+    created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (genre_id) REFERENCES genres(id) ON DELETE SET NULL,
+    INDEX idx_genre (genre_id),
+    INDEX idx_featured (is_featured),
+    INDEX idx_active (is_active),
+    FULLTEXT idx_search (title, synopsis, director)
+) ENGINE=InnoDB;
+
+-- -------------------------------------------------------
+-- Combos (snack packages)
+-- -------------------------------------------------------
+CREATE TABLE IF NOT EXISTS combos (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name        VARCHAR(120) NOT NULL,
+    description TEXT,
+    price       DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    image       VARCHAR(255) DEFAULT NULL,
+    is_active   TINYINT(1) DEFAULT 1,
+    created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- -------------------------------------------------------
+-- Coupons
+-- -------------------------------------------------------
+CREATE TABLE IF NOT EXISTS coupons (
+    id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    code            VARCHAR(30) NOT NULL UNIQUE,
+    discount_type   ENUM('percent','fixed') NOT NULL DEFAULT 'percent',
+    discount_value  DECIMAL(10,2) NOT NULL,
+    min_order_value DECIMAL(10,2) DEFAULT 0.00,
+    max_uses        INT UNSIGNED DEFAULT NULL,
+    used_count      INT UNSIGNED DEFAULT 0,
+    expires_at      DATETIME DEFAULT NULL,
+    is_active       TINYINT(1) DEFAULT 1,
+    created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_code (code)
+) ENGINE=InnoDB;
+
+-- -------------------------------------------------------
+-- Orders
+-- -------------------------------------------------------
+CREATE TABLE IF NOT EXISTS orders (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id     INT UNSIGNED NOT NULL,
+    coupon_id   INT UNSIGNED DEFAULT NULL,
+    subtotal    DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    discount    DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    total       DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    status      ENUM('pending','confirmed','cancelled') NOT NULL DEFAULT 'confirmed',
+    notes       TEXT DEFAULT NULL,
+    created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id)   REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (coupon_id) REFERENCES coupons(id) ON DELETE SET NULL,
+    INDEX idx_user (user_id),
+    INDEX idx_status (status)
+) ENGINE=InnoDB;
+
+-- -------------------------------------------------------
+-- Order Items
+-- -------------------------------------------------------
+CREATE TABLE IF NOT EXISTS order_items (
+    id           INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    order_id     INT UNSIGNED NOT NULL,
+    item_type    ENUM('movie','combo') NOT NULL,
+    item_id      INT UNSIGNED NOT NULL,
+    item_name    VARCHAR(200) NOT NULL,
+    quantity     SMALLINT UNSIGNED NOT NULL DEFAULT 1,
+    unit_price   DECIMAL(10,2) NOT NULL,
+    created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    INDEX idx_order (order_id)
+) ENGINE=InnoDB;
+
+-- -------------------------------------------------------
+-- Favorites
+-- -------------------------------------------------------
+CREATE TABLE IF NOT EXISTS favorites (
+    id         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id    INT UNSIGNED NOT NULL,
+    movie_id   INT UNSIGNED NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_user_movie (user_id, movie_id),
+    FOREIGN KEY (user_id)  REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (movie_id) REFERENCES movies(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- -------------------------------------------------------
+-- Reviews
+-- -------------------------------------------------------
+CREATE TABLE IF NOT EXISTS reviews (
+    id         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id    INT UNSIGNED NOT NULL,
+    movie_id   INT UNSIGNED NOT NULL,
+    rating     TINYINT UNSIGNED NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    comment    TEXT DEFAULT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_user_movie (user_id, movie_id),
+    FOREIGN KEY (user_id)  REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (movie_id) REFERENCES movies(id) ON DELETE CASCADE,
+    INDEX idx_movie (movie_id)
+) ENGINE=InnoDB;
+
+-- ============================================================
+-- SEED DATA
+-- ============================================================
+
+-- Genres
+INSERT IGNORE INTO genres (name, slug) VALUES
+('Action',     'action'),
+('Drama',      'drama'),
+('Comedy',     'comedy'),
+('Sci-Fi',     'sci-fi'),
+('Horror',     'horror'),
+('Thriller',   'thriller'),
+('Animation',  'animation'),
+('Romance',    'romance'),
+('Adventure',  'adventure'),
+('Crime',      'crime');
+
+-- Admin user (password: Admin@1234)
+INSERT IGNORE INTO users (name, email, password, is_admin) VALUES
+('Admin', 'admin@cineweeknd.com', '$2y$12$8zJQCyHf4bH7kD2eOv3xFuNlrW6fBKDsHYtZxJmVpA8q1X4D5Ywq2', 1);
+-- NOTE: Replace the hash above by running: password_hash('Admin@1234', PASSWORD_BCRYPT, ['cost'=>12])
+
+-- Sample movies
+INSERT IGNORE INTO movies (title, slug, synopsis, director, release_year, duration_min, rating, genre_id, price, is_featured) VALUES
+('Interstellar',        'interstellar',        'A team of explorers travel through a wormhole in space in an attempt to ensure humanity\'s survival.', 'Christopher Nolan', 2014, 169, 8.7, 4, 35.90, 1),
+('The Dark Knight',     'the-dark-knight',     'When the menace known as the Joker wreaks havoc on Gotham City, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice.', 'Christopher Nolan', 2008, 152, 9.0, 2, 32.90, 1),
+('Inception',           'inception',           'A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.', 'Christopher Nolan', 2010, 148, 8.8, 6, 32.90, 1),
+('The Matrix',          'the-matrix',          'When a beautiful stranger leads computer hacker Neo to a forbidding underworld, he discovers the shocking truth—the life he knows is the elaborate deception of an evil cyber-intelligence.', 'The Wachowskis', 1999, 136, 8.7, 4, 28.90, 0),
+('Parasite',            'parasite',            'Greed and class discrimination threaten the newly formed symbiotic relationship between the wealthy Park family and the destitute Kim clan.', 'Bong Joon Ho', 2019, 132, 8.5, 10, 30.90, 1),
+('Pulp Fiction',        'pulp-fiction',        'The lives of two mob hitmen, a boxer, a gangster and his wife, and a pair of diner bandits intertwine in four tales of violence and redemption.', 'Quentin Tarantino', 1994, 154, 8.9, 10, 28.90, 0),
+('Spirited Away',       'spirited-away',       'During her family\'s move to the suburbs, a sullen 10-year-old girl wanders into a world ruled by gods, witches, and spirits.', 'Hayao Miyazaki', 2001, 125, 8.6, 7, 27.90, 0),
+('The Godfather',       'the-godfather',       'An organized crime dynasty\'s aging patriarch transfers control of his clandestine empire to his reluctant son.', 'Francis Ford Coppola', 1972, 175, 9.2, 10, 29.90, 0),
+('Blade Runner 2049',   'blade-runner-2049',   'A young blade runner\'s discovery of a long-buried secret leads him to track down former blade runner Rick Deckard.', 'Denis Villeneuve', 2017, 164, 8.0, 4, 33.90, 0),
+('Everything Everywhere All at Once', 'everything-everywhere', 'A middle-aged Chinese immigrant is swept up in an insane adventure in which she alone can save the world by exploring other universes.', 'Daniels', 2022, 139, 7.8, 4, 34.90, 1),
+('Dune',                'dune',                'A noble family becomes embroiled in a war for control over the galaxy\'s most valuable asset while its heir becomes troubled by visions of a dark future.', 'Denis Villeneuve', 2021, 155, 8.0, 4, 36.90, 1),
+('The Grand Budapest Hotel', 'grand-budapest-hotel', 'A writer encounters the owner of an aging high-class hotel, who tells him of his early years serving as a lobby boy in the hotel\'s glorious years under an exceptional concierge.', 'Wes Anderson', 2014, 99, 8.1, 3, 26.90, 0);
+
+-- Combos
+INSERT IGNORE INTO combos (name, description, price) VALUES
+('Classic Duo',    '1 large popcorn + 1 medium soda. The perfect pair for movie night.', 24.90),
+('Mega Family',    '2 large popcorns + 2 medium sodas + 1 nachos. Feed the whole crew.', 59.90),
+('Solo VIP',       '1 premium popcorn (butter & cheese) + 1 large soda + 1 candy box.', 34.90),
+('Sweet Dreams',   '1 large popcorn (caramel) + 2 churros + 1 hot chocolate. Dessert lovers delight.', 38.90),
+('Beer & Bites',   '2 craft beers + 1 nachos with dips + 1 mini pizza. Adult movie night essential.', 49.90);
+
+-- Sample coupon
+INSERT IGNORE INTO coupons (code, discount_type, discount_value, min_order_value, max_uses, expires_at) VALUES
+('WELCOME10', 'percent', 10.00, 20.00, 100, DATE_ADD(NOW(), INTERVAL 1 YEAR)),
+('FIRSTBUY',  'fixed',   15.00, 50.00, 50,  DATE_ADD(NOW(), INTERVAL 6 MONTH));

@@ -1,0 +1,6 @@
+Options -Indexes
+RewriteEngine On
+
+# Se acessar a raiz ou qualquer path sem /public/, redireciona para public/
+RewriteCond %{REQUEST_URI} !^/CineWeeknd_final/public/
+RewriteRule ^(.*)$ public/$1 [L,QSA]
