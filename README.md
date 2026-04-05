@@ -153,21 +153,6 @@ As tabelas principais são criadas automaticamente na primeira visita. Se prefer
 
 ---
 
-## 🎨 Screenshots
-
-> *Tema neon 80s com paleta roxa/laranja, hero com chuva de filmes em Three.js e cards com glassmorphism.*
-
-| Tela | Descrição |
-|------|-----------|
-| `/` | Home com hero animado e categorias |
-| `/movies` | Catálogo com filtros AJAX |
-| `/movies/:slug/sessions` | Escolha de modo (digital/presencial) + shopping + assento |
-| `/cart` | Carrinho com combos, cupons e seleção de assento |
-| `/orders/:id` | Comprovante com QR e detalhes |
-| `/admin` | Painel de gestão completo |
-
----
-
 ## 🔑 APIs Utilizadas
 
 | API | Uso | Plano gratuito |
