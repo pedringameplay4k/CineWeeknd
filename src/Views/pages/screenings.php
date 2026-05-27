@@ -9,9 +9,11 @@
 
   <!-- Hero do filme -->
   <div class="screening-hero mb-4">
-    <?php if (!empty($movie['poster'])): ?>
-    <img src="<?= e($movie['poster']) ?>" class="screening-poster" alt="">
-    <?php endif; ?>
+    <?php
+    $posterVal = $movie['poster'] ?? '';
+    $posterSrc = empty($posterVal) ? DEFAULT_POSTER : (str_starts_with($posterVal, 'http') ? $posterVal : UPLOAD_URL . $posterVal);
+    ?>
+    <img src="<?= e($posterSrc) ?>" class="screening-poster" alt="<?= e($movie['title']) ?>">
     <div class="screening-info">
       <div class="label-gold mb-1">Escolha como assistir</div>
       <h1 class="section-title mb-2"><?= e($movie['title']) ?><span class="dot">.</span></h1>
@@ -50,49 +52,34 @@
   </div>
 
   <!-- ══ PAINEL DIGITAL ══════════════════════════════════════ -->
+  <?php
+  // Encontra a primeira sessão digital disponível para auto-seleção
+  $firstDigital = null;
+  foreach ($screeningsDigital as $_date => $_slots) {
+      foreach ($_slots as $_s) {
+          if (strtotime($_s['starts_at']) >= time()) { $firstDigital = $_s; break 2; }
+      }
+  }
+  ?>
   <div id="panelDigital">
     <div class="mode-info-bar digital-bar mb-4">
       <i class="bi bi-info-circle me-2"></i>
-      Filmes digitais ficam disponíveis imediatamente após a compra. Assista quando quiser, sem precisar sair de casa.
+      Filme disponível imediatamente após a compra. Assista quando e onde quiser, sem precisar sair de casa.
       <strong>Combos não estão disponíveis no modo digital</strong> — apenas em sessões presenciais.
     </div>
 
-    <div class="step-label mb-3"><span class="step-num">1</span> Escolha o horário para assistir</div>
-
-    <?php
-    $ptDays = ['Sunday'=>'Domingo','Monday'=>'Segunda','Tuesday'=>'Terça','Wednesday'=>'Quarta','Thursday'=>'Quinta','Friday'=>'Sexta','Saturday'=>'Sábado'];
-    $ptMonths = ['January'=>'Janeiro','February'=>'Fevereiro','March'=>'Março','April'=>'Abril','May'=>'Maio','June'=>'Junho','July'=>'Julho','August'=>'Agosto','September'=>'Setembro','October'=>'Outubro','November'=>'Novembro','December'=>'Dezembro'];
-    ?>
-
-    <?php if (empty($screeningsDigital)): ?>
-    <div class="empty-state"><div class="empty-state-icon">💻</div><div class="empty-state-title">Sem sessões digitais disponíveis</div></div>
-    <?php else: ?>
-    <?php foreach ($screeningsDigital as $date => $slots): ?>
-    <?php $ts=$ts2=strtotime($date);$today=date('Y-m-d');$tom=date('Y-m-d',strtotime('+1 day'));
-    $dn=$ptDays[date('l',$ts)]??date('l',$ts);$mn=$ptMonths[date('F',$ts)]??date('F',$ts);
-    $lbl=($date===$today?"📅 Hoje":($date===$tom?"📅 Amanhã":"📅 {$dn}")).", ".date('d',$ts)." de {$mn}"; ?>
-    <div class="screening-day mb-4">
-      <div class="screening-date-label"><?= $lbl ?></div>
-      <div class="screening-slots">
-        <?php foreach ($slots as $s): $past=strtotime($s['starts_at'])<time(); ?>
-        <button class="slot-btn slot-digital <?= $past?'disabled':'' ?>" <?= $past?'disabled':'' ?>
-                data-mode="digital"
-                data-screening="<?= $s['id'] ?>"
-                data-time="<?= date('H:i',strtotime($s['starts_at'])) ?>"
-                data-date="<?= date('d/m/Y',strtotime($s['starts_at'])) ?>"
-                data-room="Online"
-                data-venue=""
-                data-capacity="999"
-                data-taken="0"
-                data-price="<?= $movie['price_digital'] ?? 2.90 ?>">
-          <div class="slot-time"><?= date('H:i',strtotime($s['starts_at'])) ?></div>
-          <div class="slot-room"><i class="bi bi-laptop"></i> Online</div>
-          <div class="slot-seats"><?= $past ? '<span class="slot-past">Encerrada</span>' : '<span style="color:#a78bfa">Disponível</span>' ?></div>
-        </button>
-        <?php endforeach; ?>
+    <?php if ($firstDigital): ?>
+    <input type="hidden" id="digitalScreeningId" value="<?= $firstDigital['id'] ?>">
+    <input type="hidden" id="digitalPrice" value="<?= $movie['price_digital'] ?? 2.90 ?>">
+    <div class="digital-access-box">
+      <div class="digital-access-icon">🎬</div>
+      <div>
+        <div class="digital-access-title">Acesso Imediato</div>
+        <div class="digital-access-sub">Após a compra o link do filme é liberado instantaneamente</div>
       </div>
     </div>
-    <?php endforeach; ?>
+    <?php else: ?>
+    <div class="empty-state"><div class="empty-state-icon">💻</div><div class="empty-state-title">Sem sessões digitais disponíveis</div></div>
     <?php endif; ?>
   </div>
 
@@ -307,6 +294,12 @@
 .seat-demo.taken{background:rgba(180,30,30,.25);border-color:rgba(220,50,50,.5)}
 .seat-demo.selected{background:linear-gradient(135deg,#ff5f1f,#ff8c00);border-color:#ff5f1f}
 
+/* ── Digital access box ── */
+.digital-access-box{display:flex;align-items:center;gap:18px;background:rgba(139,92,246,.1);border:1.5px solid rgba(139,92,246,.3);border-radius:14px;padding:20px 22px;margin-bottom:8px}
+.digital-access-icon{font-size:2rem;flex-shrink:0}
+.digital-access-title{font-weight:800;color:#f0eaff;font-size:1rem;margin-bottom:4px}
+.digital-access-sub{font-size:.8rem;color:#a78bfa}
+
 /* ── Card confirmar ── */
 .screening-confirm-card{position:sticky;bottom:20px;z-index:100;background:var(--dark-2);border:1px solid rgba(168,85,247,.35);border-radius:18px;padding:20px 24px;box-shadow:0 8px 40px rgba(0,0,0,.6);animation:slideUp .3s ease}
 @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
@@ -370,6 +363,22 @@ function updateBtn(){
     if(seatRow) seatRow.style.display=(currentMode==='cinema')?'block':'none';
 }
 
+// ── Auto-preenche confirmCard para modo digital ───────────────
+function activateDigital(){
+    const sid=document.getElementById('digitalScreeningId')?.value;
+    const price=parseFloat(document.getElementById('digitalPrice')?.value||'2.90');
+    if(!sid) return;
+    document.getElementById('selectedScreeningId').value=sid;
+    document.getElementById('selectedMode').value='digital';
+    document.getElementById('selectedPrice').value=price;
+    document.getElementById('confirmDate').textContent='Acesso Imediato';
+    document.getElementById('confirmTime').textContent='Online';
+    document.getElementById('confirmPrice').textContent='R$ '+price.toFixed(2).replace('.',',');
+    document.getElementById('confirmMeta').innerHTML='<i class="bi bi-laptop me-1"></i>Modo Online';
+    document.getElementById('confirmCard').style.display='block';
+    updateBtn();
+}
+
 // ── Tabs de modo ─────────────────────────────────────────────
 document.querySelectorAll('.mode-tab').forEach(tab=>{
     tab.addEventListener('click',function(){
@@ -379,10 +388,14 @@ document.querySelectorAll('.mode-tab').forEach(tab=>{
         document.getElementById('panelDigital').style.display=currentMode==='digital'?'block':'none';
         document.getElementById('panelCinema').style.display=currentMode==='cinema'?'block':'none';
         document.getElementById('seatMapSection').style.display='none';
-        document.getElementById('confirmCard').style.display='none';
         document.querySelectorAll('.slot-btn').forEach(b=>b.classList.remove('selected'));
         document.getElementById('selectedMode').value=currentMode;
         selectedSeat=null;
+        if(currentMode==='digital'){
+            activateDigital();
+        } else {
+            document.getElementById('confirmCard').style.display='none';
+        }
     });
 });
 
@@ -445,6 +458,7 @@ document.querySelectorAll('.slot-btn:not(.disabled)').forEach(btn=>{
 
 // Init mode
 document.getElementById('selectedMode').value='digital';
+activateDigital();
 </script>
 
 <?php require __DIR__ . '/../layouts/footer.php'; ?>

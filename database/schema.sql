@@ -51,6 +51,7 @@ CREATE TABLE IF NOT EXISTS movies (
     genre_id         INT UNSIGNED DEFAULT NULL,
     poster           VARCHAR(300) DEFAULT NULL,
     video_url        VARCHAR(500) DEFAULT NULL,
+    gdrive_url       VARCHAR(500) DEFAULT NULL,
     trailer_url      VARCHAR(500) DEFAULT NULL,
     price            DECIMAL(10,2) NOT NULL DEFAULT 0.00,
     price_digital    DECIMAL(8,2) NOT NULL DEFAULT 2.90,
@@ -230,16 +231,16 @@ CREATE TABLE IF NOT EXISTS access_tokens (
 
 -- Genres
 INSERT IGNORE INTO genres (name, slug) VALUES
-('Action',     'action'),
-('Drama',      'drama'),
-('Comedy',     'comedy'),
-('Sci-Fi',     'sci-fi'),
-('Horror',     'horror'),
-('Thriller',   'thriller'),
-('Animation',  'animation'),
-('Romance',    'romance'),
-('Adventure',  'adventure'),
-('Crime',      'crime');
+('Ação',             'action'),
+('Drama',            'drama'),
+('Comédia',          'comedy'),
+('Ficção Científica','sci-fi'),
+('Terror',           'horror'),
+('Suspense',         'thriller'),
+('Animação',         'animation'),
+('Romance',          'romance'),
+('Aventura',         'adventure'),
+('Crime',            'crime');
 
 -- Admin user (password: Admin@1234)
 INSERT IGNORE INTO users (name, email, password, is_admin) VALUES
@@ -247,19 +248,12 @@ INSERT IGNORE INTO users (name, email, password, is_admin) VALUES
 -- NOTE: Replace the hash above by running: password_hash('Admin@1234', PASSWORD_BCRYPT, ['cost'=>12])
 
 -- Sample movies
-INSERT IGNORE INTO movies (title, slug, synopsis, director, release_year, duration_min, rating, genre_id, price, is_featured) VALUES
-('Interstellar',        'interstellar',        'A team of explorers travel through a wormhole in space in an attempt to ensure humanity\'s survival.', 'Christopher Nolan', 2014, 169, 8.7, 4, 35.90, 1),
-('The Dark Knight',     'the-dark-knight',     'When the menace known as the Joker wreaks havoc on Gotham City, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice.', 'Christopher Nolan', 2008, 152, 9.0, 2, 32.90, 1),
-('Inception',           'inception',           'A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.', 'Christopher Nolan', 2010, 148, 8.8, 6, 32.90, 1),
-('The Matrix',          'the-matrix',          'When a beautiful stranger leads computer hacker Neo to a forbidding underworld, he discovers the shocking truth—the life he knows is the elaborate deception of an evil cyber-intelligence.', 'The Wachowskis', 1999, 136, 8.7, 4, 28.90, 0),
-('Parasite',            'parasite',            'Greed and class discrimination threaten the newly formed symbiotic relationship between the wealthy Park family and the destitute Kim clan.', 'Bong Joon Ho', 2019, 132, 8.5, 10, 30.90, 1),
-('Pulp Fiction',        'pulp-fiction',        'The lives of two mob hitmen, a boxer, a gangster and his wife, and a pair of diner bandits intertwine in four tales of violence and redemption.', 'Quentin Tarantino', 1994, 154, 8.9, 10, 28.90, 0),
-('Spirited Away',       'spirited-away',       'During her family\'s move to the suburbs, a sullen 10-year-old girl wanders into a world ruled by gods, witches, and spirits.', 'Hayao Miyazaki', 2001, 125, 8.6, 7, 27.90, 0),
-('The Godfather',       'the-godfather',       'An organized crime dynasty\'s aging patriarch transfers control of his clandestine empire to his reluctant son.', 'Francis Ford Coppola', 1972, 175, 9.2, 10, 29.90, 0),
-('Blade Runner 2049',   'blade-runner-2049',   'A young blade runner\'s discovery of a long-buried secret leads him to track down former blade runner Rick Deckard.', 'Denis Villeneuve', 2017, 164, 8.0, 4, 33.90, 0),
-('Everything Everywhere All at Once', 'everything-everywhere', 'A middle-aged Chinese immigrant is swept up in an insane adventure in which she alone can save the world by exploring other universes.', 'Daniels', 2022, 139, 7.8, 4, 34.90, 1),
-('Dune',                'dune',                'A noble family becomes embroiled in a war for control over the galaxy\'s most valuable asset while its heir becomes troubled by visions of a dark future.', 'Denis Villeneuve', 2021, 155, 8.0, 4, 36.90, 1),
-('The Grand Budapest Hotel', 'grand-budapest-hotel', 'A writer encounters the owner of an aging high-class hotel, who tells him of his early years serving as a lobby boy in the hotel\'s glorious years under an exceptional concierge.', 'Wes Anderson', 2014, 99, 8.1, 3, 26.90, 0);
+INSERT IGNORE INTO movies (title, slug, synopsis, director, release_year, duration_min, rating, genre_id, poster, gdrive_url, price, is_featured) VALUES
+('Batman: O Cavaleiro das Trevas', 'batman-cavaleiro-das-trevas',
+ 'Quando o cruel vilão Coringa causa caos e destruição em Gotham City, Batman precisa aceitar um dos maiores testes psicológicos e físicos de sua capacidade de lutar contra a injustiça. Com a cidade à beira do colapso, o Homem-Morcego enfrenta escolhas impossíveis que irão definir o que significa ser um verdadeiro herói.',
+ 'Christopher Nolan', 2008, 152, 9.0, 1, 'the-dark-knight.jpg',
+ 'https://drive.google.com/file/d/1a_L2_RfDC9-A-uDewo_k_0HEXZPbEe0F/view?usp=drive_link',
+ 32.90, 1);
 
 -- Combos
 INSERT IGNORE INTO combos (name, description, price) VALUES
