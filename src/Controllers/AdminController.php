@@ -35,25 +35,25 @@ class AdminController {
     public static function createMovie(): void {
         requireAdmin();
         if (!verifyCsrf($_POST[CSRF_TOKEN_NAME] ?? '')) {
-            setFlash('error', 'Invalid token.'); redirect('/admin/movies'); }
+            setFlash('error', 'Token inválido.'); redirect('/admin/movies'); }
 
         $data = self::sanitizeMovieInput($_POST);
         $data['poster'] = self::handlePosterUpload();
         MovieModel::create($data);
-        setFlash('success', 'Movie created!');
+        setFlash('success', 'Filme criado com sucesso!');
         redirect('/admin/movies');
     }
 
     public static function updateMovie(int $id): void {
         requireAdmin();
         if (!verifyCsrf($_POST[CSRF_TOKEN_NAME] ?? '')) {
-            setFlash('error', 'Invalid token.'); redirect('/admin/movies'); }
+            setFlash('error', 'Token inválido.'); redirect('/admin/movies'); }
 
         $data = self::sanitizeMovieInput($_POST);
         $upload = self::handlePosterUpload();
         if ($upload) $data['poster'] = $upload;
         MovieModel::update($id, $data);
-        setFlash('success', 'Movie updated!');
+        setFlash('success', 'Filme atualizado com sucesso!');
         redirect('/admin/movies');
     }
 
@@ -74,13 +74,13 @@ class AdminController {
     public static function createCombo(): void {
         requireAdmin();
         if (!verifyCsrf($_POST[CSRF_TOKEN_NAME] ?? '')) {
-            setFlash('error', 'Invalid token.'); redirect('/admin/combos'); }
+            setFlash('error', 'Token inválido.'); redirect('/admin/combos'); }
         ComboModel::create([
             'name'        => trim($_POST['name'] ?? ''),
             'description' => trim($_POST['description'] ?? ''),
             'price'       => (float)($_POST['price'] ?? 0),
         ]);
-        setFlash('success', 'Combo created!');
+        setFlash('success', 'Combo criado com sucesso!');
         redirect('/admin/combos');
     }
 
@@ -101,7 +101,7 @@ class AdminController {
     public static function createCoupon(): void {
         requireAdmin();
         if (!verifyCsrf($_POST[CSRF_TOKEN_NAME] ?? '')) {
-            setFlash('error', 'Invalid token.'); redirect('/admin/coupons'); }
+            setFlash('error', 'Token inválido.'); redirect('/admin/coupons'); }
         CouponModel::create([
             'code'           => strtoupper(trim($_POST['code'] ?? '')),
             'discount_type'  => $_POST['discount_type'] ?? 'percent',
@@ -110,7 +110,7 @@ class AdminController {
             'max_uses'       => !empty($_POST['max_uses']) ? (int)$_POST['max_uses'] : null,
             'expires_at'     => !empty($_POST['expires_at']) ? $_POST['expires_at'] : null,
         ]);
-        setFlash('success', 'Coupon created!');
+        setFlash('success', 'Cupom criado com sucesso!');
         redirect('/admin/coupons');
     }
 
@@ -128,6 +128,7 @@ class AdminController {
             'rating'       => (float)($post['rating'] ?? 0),
             'genre_id'     => !empty($post['genre_id']) ? (int)$post['genre_id'] : null,
             'trailer_url'  => trim($post['trailer_url'] ?? ''),
+            'gdrive_url'   => trim($post['gdrive_url'] ?? '') ?: null,
             'price'        => (float)($post['price'] ?? 0),
             'is_featured'  => isset($post['is_featured']) ? 1 : 0,
             'is_active'    => 1,

@@ -72,6 +72,24 @@ public static function index(): void {
         require __DIR__ . '/../Views/pages/movies.php';
     }
 
+    public static function autocomplete(): void {
+        header('Content-Type: application/json; charset=utf-8');
+        $q = trim($_GET['q'] ?? '');
+        if (strlen($q) < 2) { echo json_encode([]); exit; }
+        $db   = getDB();
+        $like = '%' . $q . '%';
+        $stmt = $db->prepare(
+            "SELECT id, title, slug, poster, release_year, rating
+             FROM movies
+             WHERE is_active = 1 AND (title LIKE ? OR director LIKE ?)
+             ORDER BY popularity_score DESC, rating DESC
+             LIMIT 6"
+        );
+        $stmt->execute([$like, $like]);
+        echo json_encode($stmt->fetchAll());
+        exit;
+    }
+
     public static function random(): void {
         $movie = MovieModel::getRandom();
         if ($movie) {
@@ -94,7 +112,7 @@ public static function index(): void {
     public static function toggleFavorite(): void {
         requireLogin();
         $movieId = (int)($_POST['movie_id'] ?? 0);
-        if (!$movieId) { http_response_code(400); echo json_encode(['error' => 'Invalid']); exit; }
+        if (!$movieId) { http_response_code(400); echo json_encode(['error' => 'ID inválido']); exit; }
         $action = FavoriteModel::toggle($_SESSION['user_id'], $movieId);
         header('Content-Type: application/json');
         echo json_encode(['action' => $action]);
@@ -440,6 +458,10 @@ class OrderController {
         $total   = OrderModel::countByUser($_SESSION['user_id']);
         $pages   = (int) ceil($total / $perPage);
         $orders  = OrderModel::getByUser($_SESSION['user_id'], $perPage, $offset);
+        $orderItems = [];
+        foreach ($orders as $order) {
+            $orderItems[$order['id']] = OrderModel::getItems($order['id']);
+        }
         require __DIR__ . '/../Views/pages/order-history.php';
     }
     public static function show(int $id): void {

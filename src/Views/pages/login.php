@@ -17,9 +17,10 @@ require __DIR__ . '/../layouts/header.php';
                 <?= csrfField() ?>
                 <div class="mb-3">
                     <label class="form-label" for="email">Endereço de E-mail</label>
+                    <?php $prefill = $_SESSION['login_prefill'] ?? ''; unset($_SESSION['login_prefill']); ?>
                     <input type="email" id="email" name="email" class="form-control"
                            placeholder="seu@email.com" required autocomplete="email"
-                           value="<?= e($_POST['email'] ?? '') ?>">
+                           value="<?= e($prefill) ?>">
                 </div>
                 <div class="mb-4">
                     <div class="d-flex justify-content-between align-items-center mb-1">

@@ -118,7 +118,12 @@ class OrderModel {
 
     public static function getItems(int $orderId): array {
         $db = getDB();
-        $stmt = $db->prepare("SELECT * FROM order_items WHERE order_id = ?");
+        $stmt = $db->prepare(
+            "SELECT oi.*, m.gdrive_url
+             FROM order_items oi
+             LEFT JOIN movies m ON m.id = oi.item_id AND oi.item_type = 'movie'
+             WHERE oi.order_id = ?"
+        );
         $stmt->execute([$orderId]);
         return $stmt->fetchAll();
     }

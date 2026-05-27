@@ -5,7 +5,7 @@
 
 define('APP_NAME', 'CineWeeknd');
 define('APP_VERSION', '2.0.0');
-define('APP_URL', 'http://localhost/CineWeeknd_final/public');
+define('APP_URL', 'http://localhost/CineWeeknd/public');
 define('APP_ROOT', dirname(__DIR__));
 define('UPLOAD_DIR', APP_ROOT . '/public/assets/images/posters/');
 define('UPLOAD_URL', APP_URL . '/assets/images/posters/');
@@ -114,7 +114,7 @@ function requireLogin(): void {
 function requireAdmin(): void {
     requireLogin();
     if (empty($_SESSION['is_admin'])) {
-        setFlash('error', 'Access denied.');
+        setFlash('error', 'Acesso negado.');
         redirect('/');
     }
 }

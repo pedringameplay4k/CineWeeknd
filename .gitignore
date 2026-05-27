@@ -1,0 +1,18 @@
+# Claude Code
+.claude/
+
+# Lock de instalação local (gerado automaticamente no primeiro acesso)
+storage/installed.lock
+
+# Logs PHP
+*.log
+error_log
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp

@@ -82,7 +82,7 @@ document.getElementById('editMovieModal').addEventListener('show.bs.modal', func
     const movie = JSON.parse(e.relatedTarget.dataset.movie);
     const form = document.getElementById('editMovieForm');
     form.action = `<?= APP_URL ?>/admin/movies/${movie.id}/update`;
-    ['title','synopsis','director','cast_list','release_year','duration_min','rating','trailer_url','price'].forEach(f => {
+    ['title','synopsis','director','cast_list','release_year','duration_min','rating','trailer_url','gdrive_url','price'].forEach(f => {
         const el = form.elements[f]; if (el) el.value = movie[f] || '';
     });
     const genreEl = form.elements['genre_id']; if (genreEl) genreEl.value = movie.genre_id || '';

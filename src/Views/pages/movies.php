@@ -249,11 +249,13 @@ require __DIR__ . '/../layouts/header.php';
 
         <!-- Busca + ordenação -->
         <div class="filters-bar mb-4" id="filters-bar">
-            <div class="filter-search-wrap">
+            <div class="filter-search-wrap" style="position:relative">
                 <i class="bi bi-search search-icon"></i>
                 <input type="text" id="search-input" class="filter-search"
                        placeholder="Buscar filmes, diretores…"
-                       value="<?= e($filters['search'] ?? '') ?>">
+                       value="<?= e($filters['search'] ?? '') ?>"
+                       autocomplete="off">
+                <ul id="autocomplete-list" class="autocomplete-dropdown"></ul>
             </div>
             <select id="genre-select" class="filter-select">
                 <option value="">Todos os Gêneros</option>
@@ -557,6 +559,106 @@ require __DIR__ . '/../layouts/header.php';
 
     // Bind paginação inicial (renderizada pelo PHP)
     bindPagination();
+})();
+</script>
+
+<style>
+.autocomplete-dropdown{
+    position:absolute;top:calc(100% + 6px);left:0;right:0;
+    background:#1a1530;border:1px solid rgba(168,85,247,.3);
+    border-radius:14px;z-index:9999;list-style:none;
+    margin:0;padding:6px;
+    box-shadow:0 16px 48px rgba(0,0,0,.6);
+    display:none;
+    max-height:360px;overflow-y:auto;
+}
+.autocomplete-dropdown.open{display:block}
+.ac-item{
+    display:flex;align-items:center;gap:12px;
+    padding:8px 10px;border-radius:10px;cursor:pointer;
+    transition:background .15s;text-decoration:none;color:inherit;
+}
+.ac-item:hover,.ac-item.focused{background:rgba(168,85,247,.15)}
+.ac-poster{width:34px;height:50px;object-fit:cover;border-radius:6px;flex-shrink:0;background:#111}
+.ac-info{flex:1;min-width:0}
+.ac-title{font-weight:700;color:#f0eaff;font-size:.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ac-meta{font-size:.74rem;color:#8b7fb5;margin-top:2px}
+.ac-rating{font-size:.74rem;color:#f59e0b;font-weight:700;flex-shrink:0}
+</style>
+
+<script>
+(function(){
+    const input  = document.getElementById('search-input');
+    const list   = document.getElementById('autocomplete-list');
+    if (!input || !list) return;
+
+    const APP_URL = window.APP_URL || '';
+    let timer, focusIdx = -1, lastQ = '';
+
+    function close(){ list.classList.remove('open'); focusIdx = -1; }
+
+    function render(items){
+        list.innerHTML = '';
+        if (!items.length){ close(); return; }
+        items.forEach((m, i) => {
+            const poster = m.poster
+                ? APP_URL + '/assets/images/posters/' + m.poster
+                : APP_URL + '/assets/images/default-poster.jpg';
+            const li = document.createElement('li');
+            li.innerHTML = `
+                <a class="ac-item" href="${APP_URL}/movies/${m.slug}">
+                    <img class="ac-poster" src="${poster}" loading="lazy" onerror="this.src='${APP_URL}/assets/images/default-poster.jpg'">
+                    <div class="ac-info">
+                        <div class="ac-title">${m.title}</div>
+                        <div class="ac-meta">${m.release_year || ''}</div>
+                    </div>
+                    <div class="ac-rating">${m.rating > 0 ? '⭐ ' + parseFloat(m.rating).toFixed(1) : ''}</div>
+                </a>`;
+            list.appendChild(li);
+        });
+        focusIdx = -1;
+        list.classList.add('open');
+    }
+
+    input.addEventListener('input', function(){
+        const q = this.value.trim();
+        clearTimeout(timer);
+        if (q.length < 2){ close(); return; }
+        if (q === lastQ) return;
+        timer = setTimeout(async () => {
+            lastQ = q;
+            try {
+                const res  = await fetch(APP_URL + '/movies/autocomplete?q=' + encodeURIComponent(q));
+                const data = await res.json();
+                render(data);
+            } catch(e){ close(); }
+        }, 220);
+    });
+
+    input.addEventListener('keydown', function(e){
+        const items = list.querySelectorAll('.ac-item');
+        if (!list.classList.contains('open') || !items.length) return;
+        if (e.key === 'ArrowDown'){
+            e.preventDefault();
+            items[focusIdx]?.classList.remove('focused');
+            focusIdx = Math.min(focusIdx + 1, items.length - 1);
+            items[focusIdx]?.classList.add('focused');
+        } else if (e.key === 'ArrowUp'){
+            e.preventDefault();
+            items[focusIdx]?.classList.remove('focused');
+            focusIdx = Math.max(focusIdx - 1, 0);
+            items[focusIdx]?.classList.add('focused');
+        } else if (e.key === 'Enter' && focusIdx >= 0){
+            e.preventDefault();
+            items[focusIdx]?.click();
+        } else if (e.key === 'Escape'){
+            close();
+        }
+    });
+
+    document.addEventListener('click', function(e){
+        if (!input.contains(e.target) && !list.contains(e.target)) close();
+    });
 })();
 </script>
 

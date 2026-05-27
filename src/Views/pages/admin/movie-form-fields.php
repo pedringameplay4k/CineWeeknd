@@ -51,6 +51,16 @@
         <label class="form-label">URL do Trailer</label>
         <input type="url" name="trailer_url" class="form-control" placeholder="https://youtube.com/watch?v=…">
     </div>
+    <div class="col-12">
+        <label class="form-label">
+            <i class="bi bi-google me-1" style="color:#34a853"></i>
+            Link Google Drive <span style="color:#8b7fb5;font-weight:400;font-size:.8rem">(link de compartilhamento do filme — liberado após pagamento)</span>
+        </label>
+        <input type="url" name="gdrive_url" class="form-control" placeholder="https://drive.google.com/file/d/…/view?usp=sharing">
+        <div class="form-text text-muted" style="font-size:.75rem">
+            💡 No Google Drive: clique com botão direito no arquivo → "Compartilhar" → "Qualquer pessoa com o link pode ver" → copie o link.
+        </div>
+    </div>
     <div class="col-md-6">
         <label class="form-label">Imagem do Poster</label>
         <input type="file" name="poster" class="form-control" accept="image/jpeg,image/png,image/webp">

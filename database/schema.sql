@@ -39,23 +39,32 @@ CREATE TABLE IF NOT EXISTS genres (
 -- Movies
 -- -------------------------------------------------------
 CREATE TABLE IF NOT EXISTS movies (
-    id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    title         VARCHAR(200) NOT NULL,
-    slug          VARCHAR(200) NOT NULL UNIQUE,
-    synopsis      TEXT,
-    director      VARCHAR(120) DEFAULT NULL,
-    cast_list     TEXT DEFAULT NULL,
-    release_year  YEAR DEFAULT NULL,
-    duration_min  SMALLINT UNSIGNED DEFAULT NULL,
-    rating        DECIMAL(3,1) DEFAULT 0.0,
-    genre_id      INT UNSIGNED DEFAULT NULL,
-    poster        VARCHAR(255) DEFAULT NULL,
-    trailer_url   VARCHAR(500) DEFAULT NULL,
-    price         DECIMAL(10,2) NOT NULL DEFAULT 0.00,
-    is_featured   TINYINT(1) DEFAULT 0,
-    is_active     TINYINT(1) DEFAULT 1,
-    created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    id               INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    title            VARCHAR(200) NOT NULL,
+    slug             VARCHAR(220) NOT NULL UNIQUE,
+    synopsis         TEXT,
+    director         VARCHAR(120) DEFAULT NULL,
+    cast_list        TEXT DEFAULT NULL,
+    release_year     YEAR DEFAULT NULL,
+    duration_min     SMALLINT UNSIGNED DEFAULT NULL,
+    rating           DECIMAL(3,1) DEFAULT 0.0,
+    genre_id         INT UNSIGNED DEFAULT NULL,
+    poster           VARCHAR(300) DEFAULT NULL,
+    video_url        VARCHAR(500) DEFAULT NULL,
+    trailer_url      VARCHAR(500) DEFAULT NULL,
+    price            DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    price_digital    DECIMAL(8,2) NOT NULL DEFAULT 2.90,
+    price_cinema     DECIMAL(8,2) NOT NULL DEFAULT 5.90,
+    is_featured      TINYINT(1) DEFAULT 0,
+    is_active        TINYINT(1) DEFAULT 1,
+    is_national      TINYINT(1) DEFAULT 0,
+    is_besteirol     TINYINT(1) DEFAULT 0,
+    is_oscar         TINYINT(1) DEFAULT 0,
+    is_bestseller    TINYINT(1) DEFAULT 0,
+    popularity_score INT DEFAULT 0,
+    featured_rank    INT DEFAULT 0,
+    created_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (genre_id) REFERENCES genres(id) ON DELETE SET NULL,
     INDEX idx_genre (genre_id),
     INDEX idx_featured (is_featured),
@@ -153,7 +162,7 @@ CREATE TABLE IF NOT EXISTS reviews (
     id         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     user_id    INT UNSIGNED NOT NULL,
     movie_id   INT UNSIGNED NOT NULL,
-    rating     TINYINT UNSIGNED NOT NULL CHECK (rating BETWEEN 1 AND 5),
+    rating TINYINT UNSIGNED NOT NULL,
     comment    TEXT DEFAULT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -161,6 +170,58 @@ CREATE TABLE IF NOT EXISTS reviews (
     FOREIGN KEY (user_id)  REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (movie_id) REFERENCES movies(id) ON DELETE CASCADE,
     INDEX idx_movie (movie_id)
+) ENGINE=InnoDB;
+
+-- -------------------------------------------------------
+-- Venues (Shoppings de Brasília)
+-- -------------------------------------------------------
+CREATE TABLE IF NOT EXISTS venues (
+    id         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name       VARCHAR(100) NOT NULL,
+    address    VARCHAR(200) DEFAULT NULL,
+    city       VARCHAR(100) DEFAULT NULL,
+    is_active  TINYINT(1) DEFAULT 1,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- -------------------------------------------------------
+-- Screenings
+-- -------------------------------------------------------
+CREATE TABLE IF NOT EXISTS screenings (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    movie_id    INT UNSIGNED NOT NULL,
+    venue_id    INT UNSIGNED DEFAULT NULL,
+    mode        ENUM('digital','cinema') NOT NULL DEFAULT 'digital',
+    starts_at   DATETIME NOT NULL,
+    ends_at     DATETIME NOT NULL,
+    room        VARCHAR(30) DEFAULT 'Sala 1',
+    capacity    INT DEFAULT 50,
+    seats_taken INT DEFAULT 0,
+    is_active   TINYINT(1) DEFAULT 1,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (movie_id) REFERENCES movies(id) ON DELETE CASCADE,
+    FOREIGN KEY (venue_id) REFERENCES venues(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+-- -------------------------------------------------------
+-- Access Tokens (ingressos digitais)
+-- -------------------------------------------------------
+CREATE TABLE IF NOT EXISTS access_tokens (
+    id           INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    order_id     INT UNSIGNED NOT NULL,
+    screening_id INT UNSIGNED NOT NULL,
+    movie_id     INT UNSIGNED NOT NULL,
+    user_id      INT UNSIGNED NOT NULL,
+    token        VARCHAR(64) NOT NULL UNIQUE,
+    valid_from   DATETIME NOT NULL,
+    valid_until  DATETIME NOT NULL,
+    used_at      DATETIME DEFAULT NULL,
+    is_active    TINYINT(1) DEFAULT 1,
+    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (order_id)     REFERENCES orders(id) ON DELETE CASCADE,
+    FOREIGN KEY (screening_id) REFERENCES screenings(id) ON DELETE CASCADE,
+    FOREIGN KEY (movie_id)     REFERENCES movies(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id)      REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 -- ============================================================

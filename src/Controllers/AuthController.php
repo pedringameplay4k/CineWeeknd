@@ -39,11 +39,13 @@ class AuthController {
         $user = UserModel::findByEmail($email);
 
         if (!$user || !password_verify($password, $user['password'])) {
+            $_SESSION['login_prefill'] = $email;
             setFlash('error', 'E-mail ou senha incorretos.');
             redirect('/login');
         }
 
         if (!$user['is_active']) {
+            $_SESSION['login_prefill'] = $email;
             setFlash('error', 'Sua conta foi desativada. Contate o suporte.');
             redirect('/login');
         }
@@ -76,7 +78,7 @@ class AuthController {
         if (!filter_var($email, FILTER_VALIDATE_EMAIL))
             $errors[] = 'Endereço de e-mail inválido.';
         if (strlen($password) < MIN_PASSWORD_LENGTH)
-            $errors[] = 'Password must be at least ' . MIN_PASSWORD_LENGTH . ' caracteres.';
+            $errors[] = 'A senha deve ter pelo menos ' . MIN_PASSWORD_LENGTH . ' caracteres.';
         if ($password !== $confirm)
             $errors[] = 'As senhas não conferem.';
 
@@ -90,9 +92,17 @@ class AuthController {
             redirect('/register');
         }
 
-        UserModel::create($name, $email, $password);
-        setFlash('success', 'Conta criada com sucesso! Faça seu login. 🎉');
-        redirect('/login');
+        $userId = UserModel::create($name, $email, $password);
+        $user   = UserModel::findById($userId);
+
+        session_regenerate_id(true);
+        $_SESSION['user_id']    = $user['id'];
+        $_SESSION['user_name']  = $user['name'];
+        $_SESSION['user_email'] = $user['email'];
+        $_SESSION['is_admin']   = (bool) $user['is_admin'];
+
+        setFlash('success', 'Conta criada com sucesso! Bem-vindo, ' . $user['name'] . '! 🎬');
+        redirect('/');
     }
 
     public static function logout(): void {

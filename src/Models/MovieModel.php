@@ -120,13 +120,14 @@ class MovieModel {
 
     public static function create(array $data): int {
         $db = getDB();
-        $stmt = $db->prepare("INSERT INTO movies (title,slug,synopsis,director,cast_list,release_year,duration_min,rating,genre_id,poster,trailer_url,price,is_featured,is_national,is_besteirol,is_oscar,is_bestseller,popularity_score) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+        $stmt = $db->prepare("INSERT INTO movies (title,slug,synopsis,director,cast_list,release_year,duration_min,rating,genre_id,poster,trailer_url,gdrive_url,price,is_featured,is_national,is_besteirol,is_oscar,is_bestseller,popularity_score) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
         $stmt->execute([
             $data['title'], $data['slug'], $data['synopsis'] ?? null,
             $data['director'] ?? null, $data['cast_list'] ?? null,
             $data['release_year'] ?? null, $data['duration_min'] ?? null,
             $data['rating'] ?? 0, $data['genre_id'] ?? null,
             $data['poster'] ?? null, $data['trailer_url'] ?? null,
+            $data['gdrive_url'] ?? null,
             $data['price'], $data['is_featured'] ?? 0,
             $data['is_national'] ?? 0, $data['is_besteirol'] ?? 0,
             $data['is_oscar'] ?? 0, $data['is_bestseller'] ?? 0,
@@ -137,13 +138,14 @@ class MovieModel {
 
     public static function update(int $id, array $data): bool {
         $db = getDB();
-        $stmt = $db->prepare("UPDATE movies SET title=?,slug=?,synopsis=?,director=?,cast_list=?,release_year=?,duration_min=?,rating=?,genre_id=?,poster=?,trailer_url=?,price=?,is_featured=?,is_active=?,is_national=?,is_besteirol=?,is_oscar=?,is_bestseller=?,popularity_score=? WHERE id=?");
+        $stmt = $db->prepare("UPDATE movies SET title=?,slug=?,synopsis=?,director=?,cast_list=?,release_year=?,duration_min=?,rating=?,genre_id=?,poster=?,trailer_url=?,gdrive_url=?,price=?,is_featured=?,is_active=?,is_national=?,is_besteirol=?,is_oscar=?,is_bestseller=?,popularity_score=? WHERE id=?");
         return $stmt->execute([
             $data['title'], $data['slug'], $data['synopsis'] ?? null,
             $data['director'] ?? null, $data['cast_list'] ?? null,
             $data['release_year'] ?? null, $data['duration_min'] ?? null,
             $data['rating'] ?? 0, $data['genre_id'] ?? null,
             $data['poster'] ?? null, $data['trailer_url'] ?? null,
+            $data['gdrive_url'] ?? null,
             $data['price'], $data['is_featured'] ?? 0,
             $data['is_active'] ?? 1,
             $data['is_national'] ?? 0, $data['is_besteirol'] ?? 0,

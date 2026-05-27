@@ -53,9 +53,10 @@ if ($path === '/register' && $method === 'POST')       { AuthController::registe
 if ($path === '/logout'   && $method === 'POST')       { AuthController::logout();       exit; }
 
 // Movies
-if ($path === '/movies'          && $method === 'GET') { MovieController::index();          exit; }
-if ($path === '/movies/aleatorio' && $method === 'GET'){ MovieController::random();         exit; }
-if ($p = matchRoute('/movies/{slug}', $path))          { MovieController::show($p['slug']); exit; }
+if ($path === '/movies'              && $method === 'GET') { MovieController::index();          exit; }
+if ($path === '/movies/aleatorio'    && $method === 'GET') { MovieController::random();         exit; }
+if ($path === '/movies/autocomplete' && $method === 'GET') { MovieController::autocomplete();   exit; }
+if ($p = matchRoute('/movies/{slug}', $path))              { MovieController::show($p['slug']); exit; }
 if ($path === '/favorites/toggle' && $method === 'POST'){ MovieController::toggleFavorite(); exit; }
 if ($path === '/reviews/submit'   && $method === 'POST'){ MovieController::submitReview();   exit; }
 
