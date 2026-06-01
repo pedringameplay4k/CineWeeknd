@@ -53,12 +53,12 @@
     </div>
     <div class="col-12">
         <label class="form-label">
-            <i class="bi bi-google me-1" style="color:#34a853"></i>
-            Link Google Drive <span style="color:#8b7fb5;font-weight:400;font-size:.8rem">(link de compartilhamento do filme — liberado após pagamento)</span>
+            <i class="bi bi-play-circle me-1" style="color:#a855f7"></i>
+            Link do Filme <span style="color:#8b7fb5;font-weight:400;font-size:.8rem">(liberado após pagamento — aceita Vimeo ou Google Drive)</span>
         </label>
-        <input type="url" name="gdrive_url" class="form-control" placeholder="https://drive.google.com/file/d/…/view?usp=sharing">
+        <input type="url" name="gdrive_url" class="form-control" placeholder="https://vimeo.com/… ou https://drive.google.com/file/d/…">
         <div class="form-text text-muted" style="font-size:.75rem">
-            💡 No Google Drive: clique com botão direito no arquivo → "Compartilhar" → "Qualquer pessoa com o link pode ver" → copie o link.
+            💡 Vimeo: cole o link direto do vídeo &nbsp;·&nbsp; Google Drive: compartilhe como "Qualquer pessoa com o link"
         </div>
     </div>
     <div class="col-md-6">

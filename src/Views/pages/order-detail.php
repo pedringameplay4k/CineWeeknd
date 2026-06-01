@@ -100,30 +100,52 @@ $orderNum = str_pad($order['id'], 6, '0', STR_PAD_LEFT);
     </div><!-- /ticket -->
 
     <?php
+    // Converte qualquer URL de vídeo para embed + detecta plataforma
+    function resolveVideoEmbed(string $url): array {
+        // Vimeo: vimeo.com/ID ou player.vimeo.com/video/ID
+        if (preg_match('#vimeo\.com/(?:video/)?(\d+)#', $url, $m)) {
+            return ['embed' => 'https://player.vimeo.com/video/' . $m[1] . '?autoplay=0&title=0&byline=0&portrait=0', 'type' => 'vimeo', 'original' => $url];
+        }
+        // Google Drive: /file/d/ID/
+        if (preg_match('#drive\.google\.com/file/d/([^/]+)#', $url, $m)) {
+            return ['embed' => 'https://drive.google.com/file/d/' . $m[1] . '/preview', 'type' => 'gdrive', 'original' => $url];
+        }
+        // Outro link: sem embed, só botão
+        return ['embed' => null, 'type' => 'link', 'original' => $url];
+    }
+
     $movieLinks = array_filter($items, fn($i) => $i['item_type'] === 'movie' && !empty($i['gdrive_url']));
     if ($movieLinks): ?>
-    <!-- Google Drive — links liberados após pagamento -->
-    <div class="gdrive-section">
-      <div class="gdrive-header">
-        <span class="gdrive-icon">▶</span>
+    <!-- Player de vídeo liberado após pagamento -->
+    <?php foreach ($movieLinks as $item):
+        $video = resolveVideoEmbed($item['gdrive_url']); ?>
+    <div class="video-section">
+      <div class="video-section-header">
+        <span class="video-play-icon">▶</span>
         <div>
-          <div class="gdrive-title">Assista Agora</div>
-          <div class="gdrive-sub">Link de acesso liberado após confirmação do pagamento</div>
+          <div class="video-section-title"><?= e($item['item_name']) ?></div>
+          <div class="video-section-sub">Acesso liberado após pagamento confirmado</div>
         </div>
       </div>
-      <?php foreach ($movieLinks as $item): ?>
-      <a href="<?= e($item['gdrive_url']) ?>" target="_blank" rel="noopener" class="gdrive-btn">
-        <span class="gdrive-btn-icon">
-          <svg width="20" height="20" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg"><path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/><path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"/><path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/><path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/><path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/><path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 27h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/></svg>
-        </span>
-        <span class="gdrive-btn-label">
-          <span class="gdrive-btn-movie"><?= e($item['item_name']) ?></span>
-          <span class="gdrive-btn-hint">Abrir no Google Drive</span>
-        </span>
-        <i class="bi bi-box-arrow-up-right gdrive-btn-arrow"></i>
+      <?php if ($video['embed']): ?>
+      <div class="video-embed-wrap">
+        <iframe src="<?= e($video['embed']) ?>"
+                allow="autoplay; fullscreen; picture-in-picture"
+                allowfullscreen
+                loading="lazy"
+                style="position:absolute;top:0;left:0;width:100%;height:100%;border:0">
+        </iframe>
+      </div>
+      <a href="<?= e($video['original']) ?>" target="_blank" rel="noopener" class="video-external-link">
+        <i class="bi bi-box-arrow-up-right me-1"></i>Abrir em tela cheia
       </a>
-      <?php endforeach; ?>
+      <?php else: ?>
+      <a href="<?= e($video['original']) ?>" target="_blank" rel="noopener" class="gdrive-btn mt-2">
+        <i class="bi bi-play-circle-fill me-2"></i>Assistir agora
+      </a>
+      <?php endif; ?>
     </div>
+    <?php endforeach; ?>
     <?php endif; ?>
 
     <!-- Ações -->
@@ -147,30 +169,39 @@ $orderNum = str_pad($order['id'], 6, '0', STR_PAD_LEFT);
     </div>
 
 <style>
-/* Google Drive section */
-.gdrive-section{
-    background:linear-gradient(135deg,rgba(26,115,232,.1),rgba(52,168,83,.08));
-    border:1.5px solid rgba(52,168,83,.35);border-radius:18px;
+/* Seção de vídeo */
+.video-section{
+    background:linear-gradient(135deg,rgba(99,51,180,.12),rgba(255,95,31,.06));
+    border:1.5px solid rgba(168,85,247,.3);border-radius:18px;
     padding:20px 22px;margin-top:20px;margin-bottom:4px;
     animation:fadeInDown .5s ease .3s both;
 }
-.gdrive-header{display:flex;align-items:center;gap:14px;margin-bottom:16px}
-.gdrive-icon{font-size:1.6rem;width:42px;height:42px;background:linear-gradient(135deg,#1a73e8,#34a853);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.1rem;flex-shrink:0}
-.gdrive-title{font-weight:800;color:#f0eaff;font-size:1.05rem;line-height:1.2}
-.gdrive-sub{font-size:.78rem;color:#8b7fb5;margin-top:2px}
+.video-section-header{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.video-play-icon{
+    width:42px;height:42px;background:linear-gradient(135deg,#7c3aed,#ff5f1f);
+    border-radius:50%;display:flex;align-items:center;justify-content:center;
+    color:#fff;font-size:1rem;flex-shrink:0;
+}
+.video-section-title{font-weight:800;color:#f0eaff;font-size:1.05rem;line-height:1.2}
+.video-section-sub{font-size:.78rem;color:#8b7fb5;margin-top:2px}
+.video-embed-wrap{
+    position:relative;padding-top:56.25%; /* 16:9 */
+    border-radius:12px;overflow:hidden;
+    background:#000;margin-bottom:10px;
+}
+.video-external-link{
+    display:inline-flex;align-items:center;
+    font-size:.78rem;color:#8b7fb5;text-decoration:none;
+    transition:color .2s;
+}
+.video-external-link:hover{color:#f0eaff}
 .gdrive-btn{
     display:flex;align-items:center;gap:14px;
-    background:rgba(255,255,255,.05);border:1px solid rgba(52,168,83,.3);
-    border-radius:12px;padding:14px 16px;margin-top:10px;
-    text-decoration:none;transition:all .2s;cursor:pointer;
+    background:rgba(255,255,255,.05);border:1px solid rgba(168,85,247,.3);
+    border-radius:12px;padding:14px 16px;
+    text-decoration:none;transition:all .2s;color:#f0eaff;font-weight:700;
 }
-.gdrive-btn:hover{background:rgba(52,168,83,.12);border-color:rgba(52,168,83,.6);transform:translateY(-1px)}
-.gdrive-btn-icon{flex-shrink:0;display:flex;align-items:center;justify-content:center;width:40px;height:40px;background:#fff;border-radius:10px;padding:4px}
-.gdrive-btn-label{flex:1}
-.gdrive-btn-movie{display:block;font-weight:700;color:#f0eaff;font-size:.92rem}
-.gdrive-btn-hint{display:block;font-size:.75rem;color:#34a853;margin-top:2px;font-weight:600}
-.gdrive-btn-arrow{color:#8b7fb5;font-size:1rem;flex-shrink:0}
-.gdrive-btn:hover .gdrive-btn-arrow{color:#34a853}
+.gdrive-btn:hover{background:rgba(168,85,247,.15);color:#f0eaff;transform:translateY(-1px)}
 .resend-wrap { text-align: center; }
 .resend-btn {
     background: none; border: none;
